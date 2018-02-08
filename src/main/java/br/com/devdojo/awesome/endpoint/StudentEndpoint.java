@@ -15,6 +15,13 @@ public class StudentEndpoint {
 
     @RequestMapping(method = RequestMethod.GET, path = "/list")
     public List<Student> listAll(){
+
         return asList(new Student ("Douglas"), new Student("Meire"));
     }
+
+    public String teste(){
+
+        return "Git Ok";
+    }
 }
+
