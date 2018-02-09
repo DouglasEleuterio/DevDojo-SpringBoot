@@ -2,41 +2,53 @@ package br.com.devdojo.awesome.endpoint;
 
 import br.com.devdojo.awesome.error.CustomErrorType;
 import br.com.devdojo.awesome.model.Student;
+import br.com.devdojo.awesome.repository.StudentRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-
-import static java.util.Arrays.asList;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("students")
 public class StudentEndpoint {
 
+    private final StudentRepository studentDAO;
 
-    @RequestMapping(method = RequestMethod.GET, path = "/list")
-    public ResponseEntity<?> listAll(){
-
-        return new ResponseEntity<>(Student.studentList, HttpStatus.OK);
+    public StudentEndpoint(StudentRepository studentDAO) {
+        this.studentDAO = studentDAO;
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/{id}")
-    public ResponseEntity<?> getStudentById(@PathVariable("id")int id){
-        Student student = new Student();
-        student.setId(id);
-        int index = Student.studentList.indexOf(student);
+    @GetMapping
+    public ResponseEntity<?> listAll() {
 
-        if(index == -1) {
+        return new ResponseEntity<>(studentDAO.findAll(), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<?> getStudentById(@PathVariable("id") Long id) {
+
+        Student student = studentDAO.findOne(id);
+
+        if (student == null) {
             return new ResponseEntity<>(new CustomErrorType("Estudent not found"), HttpStatus.NOT_FOUND);
-        }else{
-            return new ResponseEntity<>(Student.studentList.get(index), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(student, HttpStatus.OK);
         }
-
     }
 
-}
+    @PostMapping
+    public ResponseEntity<?> save(@RequestBody Student student) {
+        return new ResponseEntity<>(studentDAO.save(student), HttpStatus.OK);
+    }
 
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        studentDAO.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping
+    public ResponseEntity<?> update(@RequestBody Student student) {
+        studentDAO.save(student);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+}
